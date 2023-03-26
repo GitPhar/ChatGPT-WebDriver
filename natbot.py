@@ -551,15 +551,24 @@ if (
 			"(h) to view commands again\n(r/enter) to run suggested command\n(o) change objective"
 		)
 
-	def get_gpt_command(objective, url, previous_command, browser_content):
-		prompt = prompt_template
-		prompt = prompt.replace("$objective", objective)
-		prompt = prompt.replace("$url", url[:100])
-		prompt = prompt.replace("$previous_command", previous_command)
-		prompt = prompt.replace("$browser_content", browser_content[:4500])
-		response = openai.Completion.create(model="text-davinci-002", prompt=prompt, temperature=0.5, best_of=10, n=3, max_tokens=50)
-		return response.choices[0].text
+	def get_gpt_command(objective, url, previous_command, browser_content, messages):
+    		messages = [
+        	{"role": "system", "content": "You are an agent controlling a browser."},
+        	{"role": "user", "content": f"Objective: {objective}\nURL: {url}\nPrevious Command: {previous_command}\nBrowser Content: {browser_content}"}
+    		]
 
+    		response = openai.ChatCompletion.create(
+        		model="gpt-3.5-turbo",
+        		messages=messages,
+        		max_tokens=50,
+        		n=1,
+        		temperature=0.5,
+    		)
+
+    		return response.choices[0].message["content"]
+	
+	messages = [{"role": "system", "content": "You are an agent controlling a browser."}]
+	
 	def run_cmd(cmd):
 		cmd = cmd.split("\n")[0]
 
@@ -598,7 +607,10 @@ if (
 		while True:
 			browser_content = "\n".join(_crawler.crawl())
 			prev_cmd = gpt_cmd
-			gpt_cmd = get_gpt_command(objective, _crawler.page.url, prev_cmd, browser_content)
+			user_message = f"Objective: {objective}\nURL: {_crawler.page.url}\nPrevious Command: {prev_cmd}\nBrowser Content: {browser_content}"
+			messages.append({"role": "user", "content": user_message})
+			gpt_cmd = get_gpt_command(messages)
+			messages.append({"role": "assistant", "content": gpt_cmd.strip()})
 			gpt_cmd = gpt_cmd.strip()
 
 			if not quiet:

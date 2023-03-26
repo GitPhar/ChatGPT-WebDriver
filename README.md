@@ -1,6 +1,6 @@
 # natbot
 
-Drive a browser with GPT-3
+Drive a browser with GPT-3.5-Turbo & GPT-4
 
 Here's a demo: https://twitter.com/natfriedman/status/1575631194032549888
 

@@ -1,4 +1,4 @@
-# natbot
+# ChatGPT-WebDriver
 
 Drive a browser with GPT-3.5-Turbo & GPT-4
 
